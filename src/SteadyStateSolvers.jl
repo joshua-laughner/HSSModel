@@ -29,6 +29,20 @@ function SteadyStateOptions(;T::Real=298, M::Real=2e19, rh::Real=0.01,
 end
 
 
+struct SteadyStateResult
+    no::Real
+    no2::Real
+    oh::Real
+    ho2::Real
+    ro2::Real
+    vocr::Real
+    phox::Real
+    alpha::Real
+    options::SteadyStateOptions
+    solver_results::NLsolve.SolverResults
+end
+
+
 function nox_to_no_and_no2(nox, no2_no)
     no = 1/(no2_no + 1) * nox;
     no2 = no2_no/(no2_no + 1) * nox;
@@ -81,7 +95,7 @@ function nonlin_nox_analytic_model(nox::Real; no2_no::Real=4, kwargs...)::Real
 end
 
 
-function hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real; no2_no::Real=4, options::SteadyStateOptions=SteadyStateOptions())::Array{<:Real,1}
+function hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real; no2_no::Real=4, options::SteadyStateOptions=SteadyStateOptions())::SteadyStateResult
     T = options.T;
     M = options.M;
     h2o = options.rh * M;
@@ -129,8 +143,9 @@ function hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real;
     x_initial[3] = x_initial[2];
 
     result = nlsolve(f!, x_initial, autodiff=:forward);
-    concentrations = result.zero .* mcc_per_ppt;
-    return concentrations;
+    ho2, ro2, oh = result.zero .* mcc_per_ppt;
+    
+    SteadyStateResult(no*mcc_per_ppt, no2*mcc_per_ppt, oh, ho2, ro2, vocr, phox, alpha, options, result)
 end
 
 
