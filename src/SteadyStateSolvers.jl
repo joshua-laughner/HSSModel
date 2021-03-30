@@ -107,18 +107,25 @@ function hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real;
     k_HO2HO2 = Rates.kHO2self(T, M, h2o);
     k_OHNO2 = Rates.KOHNO2a(T, M);
 
+    x_initial = zeros(3);
+    x_initial[1] = nonlin_nox_analytic_model(no, no2; phox=phox, vocr=vocr, alpha=alpha, options=options);
+    x_initial[2] = x_initial[1] * vocr / (k_RO2NO * no);
+    x_initial[3] = x_initial[2];
+
     # Convert from molec/cm3 to ppt to try to improve numeric stability
+    # Was useful in the Matlab version, seems less so in Julia
     mcc_per_ppt = M / 1e12;
 
     no /= mcc_per_ppt;
     no2 /= mcc_per_ppt;
     phox /= mcc_per_ppt;
-    k_RO2HO2 *= mcc_per_ppt;
+    k_RO2NO *= mcc_per_ppt;
     k_HO2NO *= mcc_per_ppt;
     k_HO2HO2 *= mcc_per_ppt;
     k_RO2HO2 *= mcc_per_ppt;
     k_RO2RO2 *= mcc_per_ppt;
     k_OHNO2 *= mcc_per_ppt;
+    x_initial /= mcc_per_ppt
 
     # Solve the system of equations:
     #   [HO2] = (k_RO2NO * [RO2] * [NO] * (1-alpha) ) / (k_HO2NO * [NO] + 2 * k_HO2HO2 * [HO2] + k_RO2HO2 * [RO2])
@@ -137,15 +144,12 @@ function hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real;
         F[3] = k_OHNO2 * oh * no2 + alpha * k_RO2NO * ro2 * no + 2 * k_RO2HO2 * ro2 * ho2 + 2 * k_RO2RO2 * ro2.^2 + 2 * k_HO2HO2 * ho2.^2 - phox;
     end
 
-    x_initial = zeros(3);
-    x_initial[1] = nonlin_nox_analytic_model(no, no2; phox=phox, vocr=vocr, alpha=alpha, options=options);
-    x_initial[2] = x_initial[1] * vocr / (k_RO2NO * no);
-    x_initial[3] = x_initial[2];
-
-    result = nlsolve(f!, x_initial, autodiff=:forward);
+    result = nlsolve(f!, x_initial, autodiff=:forward, iterations=100000, method=:newton);
     ho2, ro2, oh = result.zero .* mcc_per_ppt;
+    #ho2, ro2, oh = result.zero;
     
-    SteadyStateResult(no*mcc_per_ppt, no2*mcc_per_ppt, oh, ho2, ro2, vocr, phox, alpha, options, result)
+    SteadyStateResult(no*mcc_per_ppt, no2*mcc_per_ppt, oh, ho2, ro2, vocr, phox*mcc_per_ppt, alpha, options, result)
+    #SteadyStateResult(no, no2, oh, ho2, ro2, vocr, phox, alpha, options, result)
 end
 
 
