@@ -38,6 +38,7 @@ struct SteadyStateResult
     vocr::Real
     phox::Real
     alpha::Real
+    rates::Dict
     options::SteadyStateOptions
     solver_results::NLsolve.SolverResults
 end
@@ -107,6 +108,8 @@ function hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real;
     k_HO2HO2 = Rates.kHO2self(T, M, h2o);
     k_OHNO2 = Rates.KOHNO2a(T, M);
 
+    rates = Dict("RO2+NO"=>k_RO2NO, "RO2+HO2"=>k_RO2HO2, "RO2+RO2"=>k_RO2RO2, "HO2+NO"=>k_HO2NO, "HO2+HO2"=>k_HO2HO2, "NO2+OH"=>k_OHNO2);
+
     x_initial = zeros(3);
     x_initial[1] = nonlin_nox_analytic_model(no, no2; phox=phox, vocr=vocr, alpha=alpha, options=options);
     x_initial[2] = x_initial[1] * vocr / (k_RO2NO * no);
@@ -147,9 +150,11 @@ function hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real;
     result = nlsolve(f!, x_initial, autodiff=:forward, iterations=100000, method=:newton);
     ho2, ro2, oh = result.zero .* mcc_per_ppt;
     #ho2, ro2, oh = result.zero;
+
     
-    SteadyStateResult(no*mcc_per_ppt, no2*mcc_per_ppt, oh, ho2, ro2, vocr, phox*mcc_per_ppt, alpha, options, result)
-    #SteadyStateResult(no, no2, oh, ho2, ro2, vocr, phox, alpha, options, result)
+    
+    SteadyStateResult(no*mcc_per_ppt, no2*mcc_per_ppt, oh, ho2, ro2, vocr, phox*mcc_per_ppt, alpha, rates, options, result)
+    #SteadyStateResult(no, no2, oh, ho2, ro2, vocr, phox, alpha, rates, options, result)
 end
 
 
