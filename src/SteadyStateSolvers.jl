@@ -21,13 +21,39 @@ struct SteadyStateOptions
     k5eff::Real
 end
 
+"""
+    SteadyStateOptions(;T::Real=298, M::Real=2e19, rh::Real=0.01, 
+                        k_RO2NO::Real=8e-12, k_RO2HO2::Real=8e-12, k_RO2RO2::Real=6.8e-14,
+                        k4::Real=1.1e-11, k2eff::Real=8e-12, k5eff::Real=5e-12)
+
+Construct a `SteadyStateOptions` instance, that is a structure that controls the
+options for the HOx steady state solver. All parameters are keyword arguments. Available
+parameters and their default values are:
+
+* `T` (default: 298) - air temperature in Kelvin
+* `M` (default: ``2 × 10^{19}``) - number density of air in molec. cm``^{-3}``.
+* `rh` (default: 0.01) - mole fraction of H2O in the air, i.e. `rh * M` 
+  is the number density of H2O used in the model.
+* `k_RO2NO` (default: ``8 × 10^{-12}``) - fixed rate constant for the NO + RO2 → NO2 + RO 
+  reaction. Since this needs to be an effective rate for the mixing of RO2 radicals, it is just
+  used as a fixed value and doesn't change with T and M. Units of molec``^{-1}`` cm``^{3}`` s``^{-1}``.
+* `k_RO2HO2` (default: ``8 × 10^{-12}``) - fixed rate constant for the RO2 + HO2 loss pathway.
+  Like `k_RO2NO`, this doesn't vary with T and M. Units of molec``^{-1}`` cm``^{3}`` s``^{-1}``.
+* `k_RO2RO2` (default: ``6.8 × 10^{-14}``) - fixed rate constant for the RO2 + RO2 loss pathway.
+  Like `k_RO2NO`, this doesn't vary with T and M. Units of molec``^{-1}`` cm``^{3}`` s``^{-1}``.
+* `k4` (default: ``1.1 × 10^{-11}``) - rate constant for NO2 + OH → HNO3 reaction *only* in the 
+  initial guess for OH. Units of molec``^{-1}`` cm``^{3}`` s``^{-1}``.
+* `k2eff` (default: ``8 × 10^{-12}``) - effective rate constant for the NO + RO2 → NO2 + RO reaction 
+  *only* in the initial guess for OH. Units of molec``^{-1}`` cm``^{3}`` s``^{-1}``.
+* `k5eff` (default: ``5 × 10^{-12}``) - effective rate constant for the RO2 and HO2 self-reaction 
+  *only* in the initial guess for OH. Units of molec``^{-1}`` cm``^{3}`` s``^{-1}``.
+"""
 function SteadyStateOptions(;T::Real=298, M::Real=2e19, rh::Real=0.01, 
                             k_RO2NO::Real=8e-12, k_RO2HO2::Real=8e-12, k_RO2RO2::Real=6.8e-14,
                             k4::Real=1.1e-11, k2eff::Real=8e-12, k5eff::Real=5e-12)
 
     return SteadyStateOptions(T, M, rh, k_RO2NO, k_RO2HO2, k_RO2RO2, k4, k2eff, k5eff);
 end
-
 
 struct SteadyStateResult
     no::Real

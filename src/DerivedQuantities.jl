@@ -5,6 +5,14 @@ import ..SteadyStateSolvers;
 
 export nox_lifetime
 
+"""
+    nox_lifetime(result::SteadyStateSolvers.SteadyStateResult)::Dict
+
+Compute NOx lifetimes from a steady state model result. The return
+value is a dictionary with keys "total", "hno3", and "ans" which correspond
+to the overall lifetime, lifetime w.r.t. loss to HNO3, and lifetime w.r.t.
+loss to alkyl nitrates, respectively. Lifetimes are in hours.
+"""
 function nox_lifetime(result::SteadyStateSolvers.SteadyStateResult)::Dict
     # Get quantities out of the result 
     nox = result.no + result.no2;
