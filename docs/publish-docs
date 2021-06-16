@@ -1,0 +1,2 @@
+#!/bin/bash
+cd .. && git subtree push --prefix docs/build origin gh-pages
