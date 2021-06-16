@@ -4,7 +4,8 @@ using NLsolve;
 import ..Rates;
 
 export nonlin_nox_analytic_model,
-       hox_ss_solver;
+       hox_ss_solver,
+       SteadyStateOptions;
 
 
 struct SteadyStateOptions
@@ -55,6 +56,28 @@ function SteadyStateOptions(;T::Real=298, M::Real=2e19, rh::Real=0.01,
     return SteadyStateOptions(T, M, rh, k_RO2NO, k_RO2HO2, k_RO2RO2, k4, k2eff, k5eff);
 end
 
+"""
+Struct to hold the final state of the NOx-HOx steady state model. All concentrations
+are in molec. cm``^{-3}`` s``^{-1}``. The following fields have the steady state
+solution:
+
+* `oh` - OH steady-state concentration
+* `ho2` - HO2 steady-state concentration
+* `ro2` - RO2 steady-state concentration
+
+Additional fields store input or internal variables to aid in plotting,
+calculating derived quantities, or debugging:
+
+* `no` - NO concentration (from input)
+* `no2` - NO2 concentration (from input)
+* `vocr` - VOC reactivity in s``^{-1}``
+* `phox` - HOx production rate in molec. cm``^{-3}`` s``^{-1}``
+* `alpha` - NO + RO2 branching ratio
+* `rates` - a dictionary of all rate constants (both specified and calculated) used in the solution
+* `options` - the input `SteadyStateOptions` structure.
+* `solver_results` - the `NLSolve.SolverResults` structure returned by the solver that found the
+  optimum solution to the NOx-HOx steady state equations.
+"""
 struct SteadyStateResult
     no::Real
     no2::Real
@@ -82,7 +105,7 @@ end
 
 Compute OH concentrations given NO and NO2 concentrations along
 with additional kinetics parameters defined by the keyword argument.
-All concentrations are in molec./cm^3
+All concentrations are in molec. cm``^{-3}``.
 
 This uses the steady state model described in Murphy et al., ACP, 2006: 
 "The weekend effect within and downwind of Sacramento: Part 2. 
@@ -91,12 +114,12 @@ Observational evidence for chemical and dynamical contributions"
 
 The keyword arguments, with defaults in  are:
 
-* phox (6.25e6) - HOx production rate in molec. cm^-3 s^-1.
-* vocr (5.8) - Total VOC OH reactivity in s^-1
+* phox (6.25e6) - HOx production rate in molec. cm``^{-3}`` s``^{-1}``.
+* vocr (5.8) - Total VOC OH reactivity in s``^{-1}``
 * alpha (0.04) - RO2 + NO branching ratio, unitless.
-* k4 (1.1e-11) - Rate constant for OH + NO2 --> HNO3 in cm^3 molec.^-1 s^-1
-* k2eff (8e-12) - Effective reaction rate of NO with RO2 in cm^3 molec.^-1 s^-1
-* k5eff (5e-12) - Effective reaction rate of RO2 and HO2 self reaction in cm^3 molec.^-1 s^-1
+* k4 (1.1e-11) - Rate constant for OH + NO2 --> HNO3 in cm``^3`` molec``^{-1}`` s``^{-1}``
+* k2eff (8e-12) - Effective reaction rate of NO with RO2 in cm``^3`` molec``^{-1}`` s``^{-1}``
+* k5eff (5e-12) - Effective reaction rate of RO2 and HO2 self reaction in cm``^3`` molec``^{-1}`` s``^{-1}``
 """
 function nonlin_nox_analytic_model(no::Real, no2::Real; phox::Real=6.25e6, vocr::Real=5.8, alpha::Real=0.04, options::SteadyStateOptions=SteadyStateOptions())::Real
     k4 = options.k4;
@@ -122,6 +145,22 @@ function nonlin_nox_analytic_model(nox::Real; no2_no::Real=4, kwargs...)::Real
 end
 
 
+"""
+    hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real; no2_no::Real=4, options::SteadyStateOptions=SteadyStateOptions())::SteadyStateResult
+
+Solve the NOx-HOx steady state system for a given set of NOx, P(HOx), VOC reactivity, and
+RO2 branching ratio. The positional inputs are:
+
+* `no` - NO concentration in molec. cm``^{-3}``
+* `no2` - NO2 concentration in molec. cm``^{-3}``
+* `phox` - HOx production rate in molec. cm``^{-3}`` s``^{-1}``
+* `alpha` - NO + RO2 branching ratio
+
+`options` must be a `SteadyStateOptions` instance, it can be used to change more detailed options
+in the model. 
+
+This returns a `SteadyStateResult` instance which contains the final state of the model.
+"""
 function hox_ss_solver(no::Real, no2::Real, phox::Real, vocr::Real, alpha::Real; no2_no::Real=4, options::SteadyStateOptions=SteadyStateOptions())::SteadyStateResult
     T = options.T;
     M = options.M;
