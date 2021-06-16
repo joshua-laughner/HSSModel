@@ -53,6 +53,18 @@ function nox_lifetime(result::SteadyStateSolvers.SteadyStateResult)::Dict
 end
 
 
+@doc raw"""
+    ozone_production_efficiency(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+
+Compute the OPE at the final steady state balance returned by a single run of the
+steady state model. Returns the OPE as a scalar value. OPE is calculated as:
+
+``\mathrm{OPE} = \frac{P(\mathrm{O_3})}{L(\mathrm{NO_x})} = \frac{k_\mathrm{NO+HO2}[\mathrm{NO}][\mathrm{HO_2}] + (1-\alpha)k_\mathrm{NO+RO2}[\mathrm{NO}][\mathrm{RO_2}]}{k_\mathrm{NO2+OH}[\mathrm{NO_2}][\mathrm{OH}] + \alpha k_\mathrm{NO+RO2}[\mathrm{NO}][\mathrm{RO_2}]}``
+
+This follows the basic formulation described in [Kleinman et al. 2002](https://doi.org/10.1029/2002JD002529),
+but calculates each component more directly (since the precise HO2 and RO2 concentrations
+from the model are available) and accounts for alkyl nitrate formation.
+"""
 function ozone_prod_efficiency(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
     num = ozone_prod(result);
     denom = nox_loss(result);
@@ -61,6 +73,15 @@ function ozone_prod_efficiency(result::HSSModel.SteadyStateSolvers.SteadyStateRe
 end
 
 
+@doc raw"""
+    ozone_prod(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+
+Calculates the rate of ozone production given a steady state returned 
+by the model. Returns a scalar value in units of molec. cm``^{-3}`` s``^{-1}``.
+This is calculated as:
+
+``P(\mathrm{O_3}) = k_\mathrm{NO+HO2}[\mathrm{NO}][\mathrm{HO_2}] + (1-\alpha)k_\mathrm{NO+RO2}[\mathrm{NO}][\mathrm{RO_2}]``
+"""
 function ozone_prod(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
     alpha = result.alpha;
     no = result.no;
@@ -74,6 +95,15 @@ function ozone_prod(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
 end
 
 
+@doc raw"""
+    nox_loss(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+
+Calculates the rate of NOx loss given a steady state returned 
+by the model. Returns a scale value in units of molec. cm``^{-3}`` s``^{-1}``.
+This is calculated as:
+
+``L(\mathrm{NO_x}) = k_\mathrm{NO2+OH}[\mathrm{NO_2}][\mathrm{OH}] + \alpha k_\mathrm{NO+RO2}[\mathrm{NO}][\mathrm{RO_2}]``
+"""
 function nox_loss(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
     alpha = result.alpha;
     no = result.no;
