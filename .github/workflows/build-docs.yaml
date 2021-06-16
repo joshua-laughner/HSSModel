@@ -1,11 +1,12 @@
 name: Documentation
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - master
-    tags: '*'
+      branches-ignore:
+        - "**"
+      #    branches:
+      #     - master
+      #    tags: '*'
 
 jobs:
   build:
