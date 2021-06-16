@@ -45,4 +45,39 @@ function nox_lifetime(result::SteadyStateSolvers.SteadyStateResult)::Dict
 end
 
 
+function ozone_prod_efficiency(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+    num = ozone_prod(result);
+    denom = nox_loss(result);
+    
+    return num / denom;
+end
+
+
+function ozone_prod(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+    alpha = result.alpha;
+    no = result.no;
+    ro2 = result.ro2;
+    ho2 = result.ho2;
+    
+    k_ro2no = result.rates["RO2+NO"];
+    k_ho2no = result.rates["HO2+NO"];
+    
+    return (1-alpha)*k_ro2no*ro2*no + k_ho2no*ho2*no;
+end
+
+
+function nox_loss(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+    alpha = result.alpha;
+    no = result.no;
+    no2 = result.no2;
+    ro2 = result.ro2;
+    oh = result.oh;
+    
+    k_ro2no = result.rates["RO2+NO"];
+    k_no2oh = result.rates["NO2+OH"];
+    
+    return k_no2oh*no2*oh + alpha*k_ro2no*ro2*no;
+end
+
+
 end
