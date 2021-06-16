@@ -3,7 +3,7 @@ module DerivedQuantities
 import ..Rates;
 import ..SteadyStateSolvers;
 
-export nox_lifetime
+export nox_lifetime, ozone_prod_efficiency;
 
 """
     nox_lifetime(result::SteadyStateSolvers.SteadyStateResult)::Dict
@@ -54,7 +54,7 @@ end
 
 
 @doc raw"""
-    ozone_production_efficiency(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+    ozone_prod_efficiency(result::SteadyStateSolvers.SteadyStateResult)
 
 Compute the OPE at the final steady state balance returned by a single run of the
 steady state model. Returns the OPE as a scalar value. OPE is calculated as:
@@ -65,7 +65,7 @@ This follows the basic formulation described in [Kleinman et al. 2002](https://d
 but calculates each component more directly (since the precise HO2 and RO2 concentrations
 from the model are available) and accounts for alkyl nitrate formation.
 """
-function ozone_prod_efficiency(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+function ozone_prod_efficiency(result::SteadyStateSolvers.SteadyStateResult)
     num = ozone_prod(result);
     denom = nox_loss(result);
     
@@ -74,7 +74,7 @@ end
 
 
 @doc raw"""
-    ozone_prod(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+    ozone_prod(result::SteadyStateSolvers.SteadyStateResult)
 
 Calculates the rate of ozone production given a steady state returned 
 by the model. Returns a scalar value in units of molec. cm``^{-3}`` s``^{-1}``.
@@ -82,7 +82,7 @@ This is calculated as:
 
 ``P(\mathrm{O_3}) = k_\mathrm{NO+HO2}[\mathrm{NO}][\mathrm{HO_2}] + (1-\alpha)k_\mathrm{NO+RO2}[\mathrm{NO}][\mathrm{RO_2}]``
 """
-function ozone_prod(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+function ozone_prod(result::SteadyStateSolvers.SteadyStateResult)
     alpha = result.alpha;
     no = result.no;
     ro2 = result.ro2;
@@ -96,7 +96,7 @@ end
 
 
 @doc raw"""
-    nox_loss(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+    nox_loss(result::SteadyStateSolvers.SteadyStateResult)
 
 Calculates the rate of NOx loss given a steady state returned 
 by the model. Returns a scale value in units of molec. cm``^{-3}`` s``^{-1}``.
@@ -104,7 +104,7 @@ This is calculated as:
 
 ``L(\mathrm{NO_x}) = k_\mathrm{NO2+OH}[\mathrm{NO_2}][\mathrm{OH}] + \alpha k_\mathrm{NO+RO2}[\mathrm{NO}][\mathrm{RO_2}]``
 """
-function nox_loss(result::HSSModel.SteadyStateSolvers.SteadyStateResult)
+function nox_loss(result::SteadyStateSolvers.SteadyStateResult)
     alpha = result.alpha;
     no = result.no;
     no2 = result.no2;

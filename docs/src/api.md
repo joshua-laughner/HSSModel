@@ -12,3 +12,15 @@ SteadyStateOptions
 SteadyStateResult
 nonlin_nox_analytic_model
 ```
+
+## DerivedQuantities module
+```@meta
+CurrentModule = HSSModel.DerivedQuantities
+```
+
+```@docs
+nox_lifetime
+ozone_prod_efficiency
+ozone_prod
+nox_loss
+```
