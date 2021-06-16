@@ -1,2 +1,2 @@
 #!/bin/bash
-julia --color=yes --project=.. make.jl
+julia --color=yes --project=.. make.jl $@
